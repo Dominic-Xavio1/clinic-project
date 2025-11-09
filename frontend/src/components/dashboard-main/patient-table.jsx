@@ -23,63 +23,69 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import axios from "axios"
+import {useEffect,useState} from "react";
+import { useNavigate } from 'react-router'
+import toast from 'react-hot-toast'
 
-const patientsData = [
-  {
-    id: 'PT001',
-    name: 'John Doe',
-    age: 45,
-    gender: 'Male',
-    phone: '+1-555-0123',
-    email: 'john.doe@email.com',
-    status: 'active',
-    condition: 'Hypertension',
-    lastVisit: 'Jan 15, 2024',
-    nextAppointment: 'Feb 15, 2024',
-    appointmentSoon: true
-  },
-  {
-    id: 'PT002',
-    name: 'Jane Smith',
-    age: 32,
-    gender: 'Female',
-    phone: '+1-555-0124',
-    email: 'jane.smith@email.com',
-    status: 'active',
-    condition: 'Diabetes Type 2',
-    lastVisit: 'Jan 12, 2024',
-    nextAppointment: 'Jan 28, 2024',
-    appointmentSoon: true
-  },
-  {
-    id: 'PT003',
-    name: 'Robert Johnson',
-    age: 58,
-    gender: 'Male',
-    phone: '+1-555-0125',
-    email: 'robert.j@email.com',
-    status: 'inactive',
-    condition: 'Arthritis',
-    lastVisit: 'Jan 10, 2024',
-    nextAppointment: 'None scheduled',
-    appointmentSoon: false
-  },
-  {
-    id: 'PT004',
-    name: 'Emily Davis',
-    age: 28,
-    gender: 'Female',
-    phone: '+1-555-0126',
-    email: 'emily.davis@email.com',
-    status: 'active',
-    condition: 'Asthma',
-    lastVisit: 'Jan 8, 2024',
-    nextAppointment: 'Jan 22, 2024',
-    appointmentSoon: true
-  }
-]
 
 export function PatientTable() {
+  const navigate = useNavigate();
+    const [allPatient,setAllPatient] = useState([])
+  const token = localStorage.getItem("token")
+    useEffect(()=>{
+      const getPatient = async()=>{
+        try {
+          const res = await axios.get("http://localhost:5000/get/patient", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setAllPatient(res.data.patient)
+        } catch (err) {
+          console.error("Error fetching patients:", err?.response || err.message || err);
+        }
+      }
+      getPatient()
+    },[])
+
+  const deletePatient = async (id) => {
+    if (!confirm('Delete this patient?')) return;
+    try {
+      const res = await axios.delete(`http://localhost:5000/register/patient/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        setAllPatient(prev => prev.filter(p => p._id !== id));
+        toast.success(res.data.message || 'Patient deleted');
+      } else {
+        toast.error(res.data.message || 'Failed to delete');
+      }
+    } catch (err) {
+      console.error('Error deleting patient', err?.response.data);
+      toast.error(err.response?.data?.message || 'Error deleting patient');
+    }
+  };
+
+  const scheduleAppointment = async (id) => {
+    const date = prompt('Enter appointment date/time (ISO or yyyy-mm-dd hh:mm):');
+    if (!date) return;
+    const notes = prompt('Optional notes:') || '';
+    try {
+      const res = await axios.post('http://localhost:5000/register/appointment', { patientId: id, date, notes }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        toast.success('Appointment scheduled');
+      } else {
+        toast.error(res.data.message || 'Failed to schedule');
+      }
+      console.log('Appointment created', res.data);
+    } catch (err) {
+      console.error('Error scheduling appointment', err?.response || err.message || err);
+      toast.error(err.response?.data?.message || 'Error scheduling appointment');
+    }
+  }
   return (
     <Card className="mt-6 shadow-none">
       <CardHeader>
@@ -100,29 +106,29 @@ export function PatientTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Patient</TableHead>
-              <TableHead>Contact</TableHead>
+              <TableHead>Age</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Condition</TableHead>
-              <TableHead>Last Visit</TableHead>
-              <TableHead>Next Appointment</TableHead>
+              <TableHead>Family</TableHead>
+              <TableHead>Gender</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {patientsData.map((patient) => (
-                <TableRow key={patient.id}>
+            {allPatient.map((patient) => (
+                <TableRow key={patient._id}>
                   <TableCell>
                     <div>
                       <div className="font-medium">{patient.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {patient.id} • {patient.age}y • {patient.gender}
+                         • {patient.age}years • {patient.gender}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
                       <div>{patient.phone}</div>
-                      <div className="text-muted-foreground">{patient.email}</div>
+                      <div className="text-muted-foreground">{patient.family}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -133,11 +139,11 @@ export function PatientTable() {
                       {patient.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm">{patient.condition}</TableCell>
-                  <TableCell className="text-sm">{patient.lastVisit}</TableCell>
+                  <TableCell className="text-sm">{patient.medicalcondition}</TableCell>
+                  <TableCell className="text-sm">{patient.familyname}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <div className="text-sm">{patient.nextAppointment}</div>
+                      <div className="text-sm">{patient.gender}</div> 
                       {patient.appointmentSoon && (
                         <Badge variant="outline" className="w-fit text-xs">Soon</Badge>
                       )}
@@ -151,10 +157,10 @@ export function PatientTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Patient</DropdownMenuItem>
-                        <DropdownMenuItem>Schedule Appointment</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Delete Patient</DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=> navigate(`/patient/${patient._id}`)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=> navigate('/register',{state: patient})}>Edit Patient</DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=> scheduleAppointment(patient._id)}>Schedule Appointment</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600" onClick={()=> deletePatient(patient._id)}>Delete Patient</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

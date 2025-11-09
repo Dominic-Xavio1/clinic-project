@@ -1,18 +1,31 @@
 import React from 'react'
 import DashboardMain from './components/pages/dashboard-main'
-import {BrowserRouter, Routes, Route} from 'react-router-dom'
+import {BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom'
 import LandingPage from './components/landing-page/landingPage'
 import {Toaster} from 'react-hot-toast'
+import DashboardLayout from './components/other/DashboardLayout'
+import RegisterPatience from './components/pages/register-patient'  
+const ProtectedRoute = () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    return <Navigate to="/" replace />
+  }
+  return <Outlet />
+}
+
 const App = () => {
-  return     (
+  return (
     <div>
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/dashboard" element={<DashboardMain />} />
-            </Routes>
-        </BrowserRouter>
-        <Toaster position="top-right" reverseOrder={false} />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardMain />} />
+              <Route path="/register" element={<RegisterPatience />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} containerStyle={{ zIndex: 99999 }} />
     </div>
   )
 }

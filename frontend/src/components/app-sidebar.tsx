@@ -1,6 +1,8 @@
 import * as React from "react"
 import { LayoutDashboard, UserPlus, Stethoscope, FileText, User, EllipsisVertical } from "lucide-react"
 import { VersionSwitcher } from "@/components/version-switcher"
+import { useLocation, Link } from "react-router-dom"
+
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +30,6 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboard,
-      isActive: true,
     },
     {
       title: "Register Patients",
@@ -47,14 +48,15 @@ const data = {
     },
   ],
   user: {
-    name: "Dr. Sarah Johnson",
-    email: "sarah.johnson@clinic.com",
+    name: localStorage.getItem("name") || "User",
+    email: "clinic@example.com",
     avatar: "/avatars/01.png",
   },
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
+    <>
     <Sidebar {...props}>
       <SidebarHeader>
         <VersionSwitcher />
@@ -64,16 +66,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={item.isActive}>
-                    <a href={item.url} >
-                      <item.icon className="size-4" />
-                      <span className="font-normal">{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {data.navMain.map((item) => {
+                const location = useLocation();
+                const isActive = location.pathname === item.url;
+                
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link to={item.url}>  
+                        <item.icon className="size-4" />
+                        <span className="font-normal">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -106,5 +113,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  
+    </>
   )
 }

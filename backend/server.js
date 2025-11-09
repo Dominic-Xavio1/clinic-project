@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/register', patientRoutes);
+app.use("/get",patientRoutes);
 app.use("/auth",authRoute);
 
 

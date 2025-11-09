@@ -17,27 +17,65 @@ import {useState} from 'react'
 import { Input } from '../ui/input'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 const LandingPage = () => {
+
+const navigator = useNavigate()
 const [formData, setFormData] = useState({
   name: '',
   email: '',
   role: '',
   password: ''
 });
+const [loginData,setLoginData] = useState({
+  email:"",
+  password:""
+})
 
-  const handleSignup = async (e) => {
-   
-    if (e && e.preventDefault) e.preventDefault();
+  const  handleSignup=async() =>{
     try {
-      const res = await axios.post('http://localhost:5000/auth/signup', formData);
-      toast.success(res.data.message || 'Signed up');
+  
+      const res = await axios.post('http://localhost:5000/auth/signup', formData)
+      console.log("response",res)
+      if(res.data.success===false){
+        toast.error(res.data.message)
+      }
+      else if(res.data.success===true){
+        toast.success(res.data.message)
+      }
     } catch (err) {
-      console.error(err);
-      const msg = err?.response?.data?.message || 'Signup failed';
-      toast.error(msg);
+      console.error(err)
+      console.log('Error response:', err.response.data.message)
+      console.log('Error details:', err.message)
+      const msg = err?.message || 'Signup failed'
+      toast.error(err.response.data.message)
     }
-  };
+  }
+  const handleLogin=async()=>{
+    console.log("login data",loginData);
+    try{
+      const res = await axios.post("http://localhost:5000/auth/login",loginData)
+      console.log("login response ",res.data)
+      if(res.data.success===true){
+        if(res.data.token) {
+          localStorage.setItem('token', res.data.token)
+        localStorage.setItem("name",res.data.user.name)
+        }
+        toast.success(res.data.message || 'Logged in')
+      navigator("/dashboard")
+      }
+      else if( res.data.success===false){
+        toast.error(res.data.message || 'Login failed');
+      }
+    }
+    catch(error){
+      console.log("Error from login ",error)
+      toast.error(error?.response?.data?.message || error.message || 'Login failed')
+    }
+    
+
+  }
 
 
   return (
@@ -69,19 +107,19 @@ const [formData, setFormData] = useState({
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gafp-3">
-                      <Label htmlFor="name-1" className="text-gray-200">Full Name</Label>
+                      <Label htmlFor="name-1" className="text-gray-200 mb-2">Full Name</Label>
                       <Input id="name-1" name="name"onChange={(e)=>{
                         setFormData({...formData, name: e.target.value})
                       }} placeholder="Enter your name" className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500" />
                     </div>
                     <div className="grid gafp-3">
-                      <Label htmlFor="name-1" className="text-gray-200">Email</Label>
-                      <Input id="name-1" name="email" 
+                      <Label htmlFor="name-1" className="text-gray-200 mb-2">Email</Label>
+                      <Input id="name-1" name="email" type="email"
                       onChange={(e)=>{
                         setFormData({...formData, email: e.target.value})
                       }}
                       placeholder="Enter your email" className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500" />
-                    </div>
+                     </div>
                     <div className="grid gap-3">
   <Label htmlFor="role" className="text-gray-200">Role</Label>
   <select
@@ -100,7 +138,7 @@ const [formData, setFormData] = useState({
 
                     <div className="grid gap-3">
                       <Label htmlFor="password-1" className="text-gray-200">Password</Label>
-                      <Input id="password-1" name="password"
+                      <Input id="password-1" name="password" type="password"
                       onChange={(e)=>{
                         setFormData({...formData, password: e.target.value})
                       }}
@@ -111,7 +149,7 @@ const [formData, setFormData] = useState({
                     <DialogClose asChild>
                       <Button variant="outline" className="border-gray-900 bg-gray-600 hover:bg-gray-700 hover:text-white">Cancel</Button>
                     </DialogClose>
-                    <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={handleSignup}>Sign Up</Button>
+                    <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={()=>handleSignup()}>Sign Up</Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
@@ -131,12 +169,20 @@ const [formData, setFormData] = useState({
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-3">
-                      <Label htmlFor="email-login" className="text-gray-200">Email</Label>
-                      <Input id="email-login" name="email" type="email" placeholder="Enter your email" className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500" />
+                      <Label htmlFor="email-login" className="text-gray-200">Email or Full name</Label>
+                      <Input id="email-login" name="email" type="email" placeholder="Enter your email" className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500"
+                       onChange={(e)=>
+                         setLoginData({...loginData,email:e.target.value})
+                      }
+                      />
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="password-login" className="text-gray-200">Password</Label>
-                      <Input id="password-login" name="password" type="password" placeholder="Enter your password" className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500" />
+                      <Label htmlFor="password-login" className="text-gray-200" >Password</Label>
+                      <Input id="password-login" name="password" 
+                      onChange={(e)=>
+                         setLoginData({...loginData,password:e.target.value})
+                      }
+                      type="password" placeholder="Enter your password" className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500" />
                     </div>
                   </div>
                   <DialogFooter>
@@ -146,9 +192,8 @@ const [formData, setFormData] = useState({
                          <Button variant="outline" className="border-gray-900 bg-gray-600 hover:bg-gray-700 hover:text-white">Cancel</Button>
                 
                     </DialogClose>
-                    <Link to="/dashboard">
-                     <Button type="submit" className="bg-white/90 text-black hover:bg-white/80">Log In</Button>
-                    </Link>
+                     <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={()=>handleLogin()}>Log In</Button>
+
                   </DialogFooter>
 
                 </form>
