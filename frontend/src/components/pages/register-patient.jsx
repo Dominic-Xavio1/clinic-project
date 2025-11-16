@@ -16,6 +16,7 @@ import { Input } from "../ui/input"
 import toast from "react-hot-toast"
 import axios from "axios"
 import {useLocation} from "react-router-dom"
+import { createApiEndpoint } from '../../config/api'
 import {
   Card,
   CardContent,
@@ -29,7 +30,7 @@ const patientFormSchema = z.object({
   age: z.string().min(1, "Age is required"),
   gender: z.enum(["male", "female", "other"], "Please select a gender"),
   medicalcondition: z.string().min(2, "Medical condition is required"),
-  status: z.enum(["healed", "diagnosis", "sick"], "Please select a status")
+  status: z.enum(["healed", "diagnosis", "sick", "in_treatment"], "Please select a status")
 })
 export default function RegisterPatience() {
   const form = useForm({
@@ -69,13 +70,13 @@ export default function RegisterPatience() {
       let response;
       if (editing && editing._id) {
         response = await axios.put(
-          `http://localhost:5000/register/patient/${editing._id}`,
+          createApiEndpoint(`register/patient/${editing._id}`),
           values,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         response = await axios.post(
-          "http://localhost:5000/register/patient",
+          createApiEndpoint('register/patient'),
           values,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -214,6 +215,7 @@ export default function RegisterPatience() {
                             <option value="sick">Sick</option>
                             <option value="healed">Healed</option>
                             <option value="diagnosis">Diagnosis</option>
+                            <option value="in_treatment">In Treatment</option>
                           </select>
                         </FormControl>
                         <FormMessage />

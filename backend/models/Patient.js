@@ -9,7 +9,7 @@ const patientSchema = new mongoose.Schema({
       required: true,
     },
   status: {  type: String,
-    enum: ["healed", "sick", "diagnosis"], 
+    enum: ["healed", "sick", "diagnosis", "in_treatment"], 
     default: "healed" },
     familyname: { type: String, required: true },
     gender: { type: String, required: true},

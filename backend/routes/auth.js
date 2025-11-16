@@ -1,4 +1,4 @@
-import register, { getPatientById, updatePatient, deletePatient, createAppointment } from "../controllers/patientControllers.js";
+import register, { getPatientById, updatePatient, deletePatient, createAppointment, createReport, getPatientReports, getAllReports, updatePatientStatus } from "../controllers/patientControllers.js";
 import express from 'express';
 import { signup, login } from '../controllers/userControllers.js';
 import auth from '../middleware/auth.js';
@@ -23,6 +23,14 @@ router.get('/patient/:id', auth, getPatientById);
 router.put('/patient/:id', auth, updatePatient);
 router.delete('/patient/:id', auth, deletePatient);
 router.post('/appointment', auth, createAppointment);
+
+// Report routes
+router.post('/report', auth, createReport);
+router.get('/report', auth, getAllReports);
+router.get('/report/:patientId', auth, getPatientReports);
+
+// Patient status update route
+router.put('/patient/:id/status', auth, updatePatientStatus);
 
 export default router;
 

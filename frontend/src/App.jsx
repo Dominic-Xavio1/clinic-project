@@ -4,7 +4,8 @@ import {BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom'
 import LandingPage from './components/landing-page/landingPage'
 import {Toaster} from 'react-hot-toast'
 import DashboardLayout from './components/other/DashboardLayout'
-import RegisterPatience from './components/pages/register-patient'  
+import RegisterPatience from './components/pages/register-patient'
+import CreateReport from './components/pages/create-report'  
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
   if (!token) {
@@ -22,6 +23,7 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardMain />} />
               <Route path="/register" element={<RegisterPatience />} />
+              <Route path="/create-report" element={<CreateReport />} />
           </Route>
         </Routes>
       </BrowserRouter>

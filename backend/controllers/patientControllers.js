@@ -1,5 +1,6 @@
 import Patient from '../models/Patient.js';
 import Appointment from '../models/Appointment.js';
+import Report from '../models/Report.js';
 
 const register = async (req, res) => {
   let { fullname, status, age, gender, medicalcondition, familyname } = req.body;
@@ -118,4 +119,119 @@ export const createAppointment = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+export const createReport = async (req, res) => {
+  try {
+    const { patientId, title, description, diagnosis, prescription, recommendations } = req.body;
+    const userId = req.userId;
+    
+    if (!patientId || !title || !description) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'patientId, title, and description are required' 
+      });
+    }
+
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
+    }
+
+    const report = new Report({
+      patient: patientId,
+      doctor: userId,
+      title,
+      description,
+      diagnosis,
+      prescription,
+      recommendations,
+      consultationDate: new Date()
+    });
+
+    await report.save();
+    await report.populate('patient', 'name age gender');
+    await report.populate('doctor', 'name email');
+
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Report created successfully',
+      report 
+    });
+  } catch (err) {
+    console.error('Error creating report', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const getPatientReports = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const reports = await Report.find({ patient: patientId })
+      .populate('doctor', 'name email')
+      .populate('patient', 'name age gender')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ 
+      success: true, 
+      reports 
+    });
+  } catch (err) {
+    console.error('Error fetching reports', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Get all reports (for dashboard)
+export const getAllReports = async (req, res) => {
+  try {
+    const reports = await Report.find()
+      .populate('doctor', 'name email')
+      .populate('patient', 'name age gender familyname')
+      .sort({ createdAt: -1 })
+      .limit(50); // Limit to recent 50 reports
+
+    return res.status(200).json({ 
+      success: true, 
+      reports 
+    });
+  } catch (err) {
+    console.error('Error fetching all reports', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Update patient status (healed or in_treatment)
+export const updatePatientStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status || !['healed', 'in_treatment'].includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Status must be either "healed" or "in_treatment"' 
+      });
+    }
+
+    const patient = await Patient.findByIdAndUpdate(
+      id, 
+      { status }, 
+      { new: true, runValidators: true }
+    );
+
+    if (!patient) {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
+    }
+
+    return res.json({ 
+      success: true, 
+      patient, 
+      message: `Patient status updated to ${status}` 
+    });
+  } catch (err) {
+    console.error('Error updating patient status', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 export default register;

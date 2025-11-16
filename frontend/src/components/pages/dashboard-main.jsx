@@ -2,16 +2,20 @@
 import React from 'react'
 import { SectionCards } from '../dashboard-main/section-cards'
 import { PatientTable } from '../dashboard-main/patient-table'
+import { ReportsCard } from '../dashboard-main/reports-card'
 import DashboardLayout from '../other/DashboardLayout'
 import {useEffect,useState} from "react";
 import axios from "axios"
+import { createApiEndpoint } from '../../config/api'
 const DashboardMain = () => {
   const [allPatient,setAllPatient] = useState([])
-const token = localStorage.getItem("token")
+  const [reportsCount, setReportsCount] = useState(0)
+  const token = localStorage.getItem("token")
+  
   useEffect(()=>{
     const getPatient = async()=>{
       try {
-        const res = await axios.get("http://localhost:5000/get/patient", {
+        const res = await axios.get(createApiEndpoint('get/patient'), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -22,8 +26,25 @@ const token = localStorage.getItem("token")
         console.error("Error fetching patients:", err?.response || err.message || err);
       }
     }
+    
+    const getReportsCount = async()=>{
+      try {
+        const res = await axios.get(createApiEndpoint('register/report'), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.data.success) {
+          setReportsCount(res.data.reports?.length || 0)
+        }
+      } catch (err) {
+        console.error("Error fetching reports count:", err?.response || err.message || err);
+      }
+    }
+    
     getPatient()
-  },[])
+    getReportsCount()
+  },[token])
   return (
     <DashboardLayout>
     <div>
@@ -42,31 +63,32 @@ const token = localStorage.getItem("token")
             footerDescription="Total number of registered patients"
           />
           <SectionCards
-            title="Appointments Today"
-            value={32}
+            title="Total Reports"
+            value={reportsCount}
             increasing={true}
-            percentage="8.3%"
-            footerHeader="Scheduled Today"
-            footerDescription="Total appointments for today"
+            percentage=""
+            footerHeader="Medical Reports"
+            footerDescription="Reports created by doctors"
           />
-          <SectionCards
+          {/* <SectionCards
             title="Pending Diagnostics"
             value={15}
             increasing={false}
             percentage="3.2%"
             footerHeader="Tests Pending"
             footerDescription="Awaiting diagnostic results"
-          />
-          <SectionCards
+          /> */}
+          {/* <SectionCards
             title="Revenue This Month"
             value="$45,231"
             increasing={true}
             percentage="15.7%"
             footerHeader="Monthly Revenue"
             footerDescription="Total revenue for current month"
-          />
+          /> */}
         </div>
         
+        <ReportsCard />
         <PatientTable />
       </div>
       

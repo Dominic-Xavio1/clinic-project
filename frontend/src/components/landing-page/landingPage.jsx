@@ -18,6 +18,7 @@ import { Input } from '../ui/input'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { createApiEndpoint } from '../../config/api'
 
 const LandingPage = () => {
 
@@ -36,7 +37,7 @@ const [loginData,setLoginData] = useState({
   const  handleSignup=async() =>{
     try {
   
-      const res = await axios.post('http://localhost:5000/auth/signup', formData)
+      const res = await axios.post(createApiEndpoint('auth/signup'), formData)
       console.log("response",res)
       if(res.data.success===false){
         toast.error(res.data.message)
@@ -55,7 +56,7 @@ const [loginData,setLoginData] = useState({
   const handleLogin=async()=>{
     console.log("login data",loginData);
     try{
-      const res = await axios.post("http://localhost:5000/auth/login",loginData)
+      const res = await axios.post(createApiEndpoint('auth/login'), loginData)
       console.log("login response ",res.data)
       if(res.data.success===true){
         if(res.data.token) {

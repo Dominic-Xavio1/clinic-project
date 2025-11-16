@@ -27,6 +27,7 @@ import axios from "axios"
 import {useEffect,useState} from "react";
 import { useNavigate } from 'react-router'
 import toast from 'react-hot-toast'
+import { createApiEndpoint } from '../../config/api'
 
 
 export function PatientTable() {
@@ -36,7 +37,7 @@ export function PatientTable() {
     useEffect(()=>{
       const getPatient = async()=>{
         try {
-          const res = await axios.get("http://localhost:5000/get/patient", {
+          const res = await axios.get(createApiEndpoint('get/patient'), {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -52,7 +53,7 @@ export function PatientTable() {
   const deletePatient = async (id) => {
     if (!confirm('Delete this patient?')) return;
     try {
-      const res = await axios.delete(`http://localhost:5000/register/patient/${id}`, {
+      const res = await axios.delete(createApiEndpoint(`register/patient/${id}`), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.success) {
@@ -72,7 +73,7 @@ export function PatientTable() {
     if (!date) return;
     const notes = prompt('Optional notes:') || '';
     try {
-      const res = await axios.post('http://localhost:5000/register/appointment', { patientId: id, date, notes }, {
+      const res = await axios.post(createApiEndpoint('register/appointment'), { patientId: id, date, notes }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -84,6 +85,44 @@ export function PatientTable() {
     } catch (err) {
       console.error('Error scheduling appointment', err?.response || err.message || err);
       toast.error(err.response?.data?.message || 'Error scheduling appointment');
+    }
+  }
+
+  const updatePatientStatus = async (id, status) => {
+    try {
+      const res = await axios.put(
+        createApiEndpoint(`register/patient/${id}/status`),
+        { status },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      if (res.data.success) {
+        setAllPatient(prev => 
+          prev.map(p => p._id === id ? { ...p, status } : p)
+        );
+        toast.success(res.data.message || `Patient status updated to ${status}`);
+      } else {
+        toast.error(res.data.message || 'Failed to update status');
+      }
+    } catch (err) {
+      console.error('Error updating patient status', err?.response || err.message || err);
+      toast.error(err.response?.data?.message || 'Error updating patient status');
+    }
+  }
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'healed':
+        return 'border-green-200 text-green-800 bg-green-100 hover:border-green-200 hover:text-green-800 hover:bg-green-100';
+      case 'in_treatment':
+        return 'border-blue-200 text-blue-800 bg-blue-100 hover:border-blue-200 hover:text-blue-800 hover:bg-blue-100';
+      case 'sick':
+        return 'border-red-200 text-red-800 bg-red-100 hover:border-red-200 hover:text-red-800 hover:bg-red-100';
+      case 'diagnosis':
+        return 'border-yellow-200 text-yellow-800 bg-yellow-100 hover:border-yellow-200 hover:text-yellow-800 hover:bg-yellow-100';
+      default:
+        return 'border-gray-200 text-gray-800 bg-gray-100 hover:border-gray-200 hover:text-gray-800 hover:bg-gray-100';
     }
   }
   return (
@@ -133,10 +172,10 @@ export function PatientTable() {
                   </TableCell>
                   <TableCell>
                     <Badge 
-                      variant={patient.status === 'active' ? 'default' : 'secondary'}
-                      className={patient.status === 'active' ? 'border-green-200 text-green-800 bg-green-100 hover:border-green-200 hover:text-green-800 hover:bg-green-100' : 'border-gray-200 text-gray-800 bg-gray-100 hover:border-gray-200 hover:text-gray-800 hover:bg-gray-100'}
+                      variant="secondary"
+                      className={getStatusBadgeClass(patient.status)}
                     >
-                      {patient.status}
+                      {patient.status === 'in_treatment' ? 'In Treatment' : patient.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm">{patient.medicalcondition}</TableCell>
@@ -160,6 +199,19 @@ export function PatientTable() {
                         <DropdownMenuItem onClick={()=> navigate(`/patient/${patient._id}`)}>View Details</DropdownMenuItem>
                         <DropdownMenuItem onClick={()=> navigate('/register',{state: patient})}>Edit Patient</DropdownMenuItem>
                         <DropdownMenuItem onClick={()=> scheduleAppointment(patient._id)}>Schedule Appointment</DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=> navigate('/create-report', { state: { patientId: patient._id } })}>Create Report</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={()=> updatePatientStatus(patient._id, 'healed')}
+                          className="text-green-600"
+                        >
+                          Mark as Healed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={()=> updatePatientStatus(patient._id, 'in_treatment')}
+                          className="text-blue-600"
+                        >
+                          Mark as In Treatment
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600" onClick={()=> deletePatient(patient._id)}>Delete Patient</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { LayoutDashboard, UserPlus, Stethoscope, FileText, User, EllipsisVertical } from "lucide-react"
+import { LayoutDashboard, UserPlus, Stethoscope, FileText, User, EllipsisVertical, FilePlus } from "lucide-react"
 import { VersionSwitcher } from "@/components/version-switcher"
 import { useLocation, Link } from "react-router-dom"
 
@@ -36,15 +36,20 @@ const data = {
       url: "/register",
       icon: UserPlus,
     },
+    // {
+    //   title: "Diagnostics",
+    //   url: "/diagnostics",
+    //   icon: Stethoscope,
+    // },
+    // {
+    //   title: "Patient History",
+    //   url: "/history",
+    //   icon: FileText,
+    // },
     {
-      title: "Diagnostics",
-      url: "/diagnostics",
-      icon: Stethoscope,
-    },
-    {
-      title: "Patient History",
-      url: "/history",
-      icon: FileText,
+      title: "Create Report",
+      url: "/create-report",
+      icon: FilePlus,
     },
   ],
   user: {
