@@ -1,5 +1,5 @@
 import * as React from "react"
-import { LayoutDashboard, UserPlus, Stethoscope, FileText, User, EllipsisVertical, FilePlus } from "lucide-react"
+import { LayoutDashboard, UserPlus, User, EllipsisVertical, FilePlus, HeartPulse, MessageSquare } from "lucide-react"
 import { VersionSwitcher } from "@/components/version-switcher"
 import { useLocation, Link } from "react-router-dom"
 
@@ -24,42 +24,53 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 // Navigation data
-const data = {
-  navMain: [
+
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  let role = localStorage.getItem("role")
+  const baseNav = [
     {
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboard,
     },
     {
+      title: "Diseases",
+      url: "/diseases",
+      icon: HeartPulse,
+    },
+    {
+      title: "Messages",
+      url: "/messages",
+      icon: MessageSquare,
+    },
+  ]
+
+  const staffNav = [
+    {
       title: "Register Patients",
       url: "/register",
       icon: UserPlus,
     },
-    // {
-    //   title: "Diagnostics",
-    //   url: "/diagnostics",
-    //   icon: Stethoscope,
-    // },
-    // {
-    //   title: "Patient History",
-    //   url: "/history",
-    //   icon: FileText,
-    // },
     {
       title: "Create Report",
       url: "/create-report",
       icon: FilePlus,
     },
-  ],
-  user: {
-    name: localStorage.getItem("name") || "User",
-    email: "clinic@example.com",
-    avatar: "/avatars/01.png",
-  },
-}
+  ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const doctorExtras = role === "doctor" ? [{ title: "Register Nurse", url: "/register-nurse", icon: UserPlus }] : []
+
+  const navMain = role === "doctor" || role === "nurse" ? [...baseNav, ...staffNav, ...doctorExtras] : baseNav
+
+  const data = {
+    navMain,
+    user: {
+      name: localStorage.getItem("name") || "User",
+      email: `${role}`  ,
+      avatar: "/avatars/01.png",
+    },
+  }
   return (
     <>
     <Sidebar {...props}>

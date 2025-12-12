@@ -4,7 +4,7 @@ import validator from "validator"
 import jwt from 'jsonwebtoken';
 
 const signup = async (req, res) => {
-  let { name, email, password, role } = req.body;
+  let { name, email, password } = req.body;
   console.log('coming data:', req.body);
 if(!validator.isLength(name,{min:8})){
 return  res.status(404).json({success:false,message:"Your full name can't go below 6 character!"})
@@ -12,27 +12,18 @@ return  res.status(404).json({success:false,message:"Your full name can't go bel
 else if(!validator.isEmail(email)){
  return res.json({success:false,message:"Invalid email!"})
 }
-else if(!role){
- return res.json({success:false,message:"Role is required!"})
-}
 else if(!validator.isLength(password,{min:6})){
  return res.json({success:false,message:"Password must be atleast 6 characters!"})
 }
     try {
   let user = await User.findOne({ email });
-  if (user) return res.status(409).json({ success:false, message: 'User already exists. Please login!' });
+  if (user) return res.status(409).json({ success:false,exist:true, message: 'User already exists. Please login!' });
     const hashedPassword = await bcrypt.hash(password, 10);
-    if(role && role !== 'doctor' && role !== 'receptionist') {
-      return res.status(400).json({ success:false,message: 'Invalid role specified' });
-    } 
-    if (!role) {
-      role = 'receptionist';
-    }
     user = new User({
       name,
         email,
         password: hashedPassword,
-        role
+        role: 'patient'
     });
     await user.save();
     res.status(201).json({success:true, message: `Account created for ${name} ` });
@@ -77,4 +68,36 @@ const login = async (req, res) => {
   }
 };
 
-export { signup, login };
+// Doctor can register nurses
+const registerNurse = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: "Name, email and password are required" });
+    }
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(409).json({ success: false, message: "User already exists" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const nurse = await User.create({ name, email, password: hashedPassword, role: "nurse" });
+    res.status(201).json({ success: true, message: "Nurse registered", user: { id: nurse._id, name: nurse.name, email: nurse.email, role: nurse.role } });
+  } catch (err) {
+    console.error("Error registering nurse", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const listUsers = async (req, res) => {
+  try {
+    const { role } = req.query;
+    const filter = role ? { role } : {};
+    const users = await User.find(filter).select("name email role");
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error("Error listing users", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export { signup, login, registerNurse, listUsers };

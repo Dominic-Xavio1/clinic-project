@@ -1,5 +1,5 @@
 import { Hospital } from "lucide-react"
-
+import logo from "../../public/agahozo.png"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -11,8 +11,8 @@ export function VersionSwitcher() {
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton size="lg">
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <Hospital className="size-4" />
+          <div className="text-sidebar-primary-foreground flex  items-center justify-center rounded-lg">
+            <img src={logo} alt="logo" className="w-14 h-14" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
             <span className="font-semibold">Clinic Management</span>

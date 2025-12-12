@@ -22,6 +22,7 @@ export default function DashboardLayout({ children }) {
   const handleLogout = async()=>{
    await localStorage.removeItem("token")
    await localStorage.removeItem("name")
+   await localStorage.removeItem("role")
 navigator("/")
 toast.success("Logout successfully!")
   }
@@ -48,8 +49,10 @@ toast.success("Logout successfully!")
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
+            <div className='flex ml-[800px]'>
             <div className="font-bold border p-2 px-4 rounded-sm hover:cursor-pointer" onClick={()=>handleLogout()}>
               Logout
+            </div>
             </div>
           </header> 
           <main className="flex-1 overflow-y-auto p-4 bg-gray-50">

@@ -12,16 +12,15 @@ import {
   DialogTrigger,
 } from '../ui/dialog'
 import { Label } from '../ui/label'
-import {toast } from 'react-toastify'
+import {toast } from 'react-hot-toast'
 import {useState} from 'react'
 import { Input } from '../ui/input'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
-import { createApiEndpoint } from '../../config/api'
-
+import API_BASE_URL from '../../config/api'
 const LandingPage = () => {
-const [isLoading,setIsLoading]=useState(false);
+
 const navigator = useNavigate()
 const [formData, setFormData] = useState({
   name: '',
@@ -34,20 +33,16 @@ const [loginData,setLoginData] = useState({
   password:""
 })
 
-    console.log("isLoading ",isLoading)
   const  handleSignup=async() =>{
     try {
   
-      const res = await axios.post(createApiEndpoint('auth/signup'), formData)
+      const res = await axios.post(`${API_BASE_URL}/auth/signup`, formData)
       console.log("response",res)
       if(res.data.success===false){
         toast.error(res.data.message)
       }
       else if(res.data.success===true){
         toast.success(res.data.message)
-      }
-      else if(res.data.exist===true){
-        toast.success("Login To continue!")
       }
     } catch (err) {
       console.error(err)
@@ -56,16 +51,11 @@ const [loginData,setLoginData] = useState({
       const msg = err?.message || 'Signup failed'
       toast.error(err.response.data.message)
     }
-    finally{
-      setIsLoading(false);
-    }
   }
   const handleLogin=async()=>{
-    console.log("isLoading ",isLoading);
     console.log("login data",loginData);
-    setIsLoading(true)
     try{
-      const res = await axios.post(createApiEndpoint('auth/login'), loginData)
+      const res = await axios.post(`${API_BASE_URL}/auth/login`,loginData)
       console.log("login response ",res.data)
       if(res.data.success===true){
         if(res.data.token) {
@@ -82,9 +72,6 @@ const [loginData,setLoginData] = useState({
     catch(error){
       console.log("Error from login ",error)
       toast.error(error?.response?.data?.message || error.message || 'Login failed')
-    }
-    finally{
-      setIsLoading(false);
     }
     
 
@@ -162,10 +149,7 @@ const [loginData,setLoginData] = useState({
                     <DialogClose asChild>
                       <Button variant="outline" className="border-gray-900 bg-gray-600 hover:bg-gray-700 hover:text-white">Cancel</Button>
                     </DialogClose>
-                    <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={()=>{
-                      handleSignup()
-                      setIsLoading(true)
-                      }}>{isLoading?<span>Loading...</span>:<span>Sign Up</span>}</Button>
+                    <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={()=>handleSignup()}>Sign Up</Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
@@ -208,7 +192,7 @@ const [loginData,setLoginData] = useState({
                          <Button variant="outline" className="border-gray-900 bg-gray-600 hover:bg-gray-700 hover:text-white">Cancel</Button>
                 
                     </DialogClose>
-                     <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={()=>handleLogin()}>{isLoading?<span>Loading...</span>:<span>Log In</span>}</Button>
+                     <Button type="button" className="bg-white/90 text-black hover:bg-white/80" onClick={()=>handleLogin()}>Log In</Button>
 
                   </DialogFooter>
 

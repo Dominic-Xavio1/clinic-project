@@ -74,7 +74,7 @@ A comprehensive clinic management system built with React (Vite) and Node.js (Ex
    ```env
    VITE_API_BASE_URL=http://localhost:5000
    ```
-   
+      
    Start the frontend development server:
    ```bash
    npm run dev

@@ -1,13 +1,19 @@
 import register, { getPatientById, updatePatient, deletePatient, createAppointment, createReport, getPatientReports, getAllReports, updatePatientStatus } from "../controllers/patientControllers.js";
 import express from 'express';
-import { signup, login } from '../controllers/userControllers.js';
+import { signup, login, registerNurse, listUsers } from '../controllers/userControllers.js';
 import auth from '../middleware/auth.js';
 import Patient from '../models/Patient.js'
+import { requireRole } from "../middleware/roles.js";
+import { listDiseases, createDisease, updateDisease, deleteDisease } from "../controllers/diseaseController.js";
+import { listMessages, sendMessage } from "../controllers/messageController.js";
 
 const router = express.Router();
 
 router.post('/signup', signup);
 router.post('/login', login);
+router.post('/nurse', auth, requireRole('doctor'), registerNurse);
+router.get('/users', auth, listUsers);
+
 router.post('/patient', auth, register);
 router.get('/patient', auth, async (req, res) => {
   try {
@@ -31,6 +37,16 @@ router.get('/report/:patientId', auth, getPatientReports);
 
 // Patient status update route
 router.put('/patient/:id/status', auth, updatePatientStatus);
+
+// Disease awareness routes
+router.get('/diseases', auth, listDiseases);
+router.post('/diseases', auth, requireRole('doctor', 'nurse'), createDisease);
+router.put('/diseases/:id', auth, requireRole('doctor', 'nurse'), updateDisease);
+router.delete('/diseases/:id', auth, requireRole('doctor', 'nurse'), deleteDisease);
+
+// Messaging routes    requireRole('receptionist','receptionist') from /messages
+router.post('/messages', auth, sendMessage);
+router.get('/messages', auth, listMessages);
 
 export default router;
 
