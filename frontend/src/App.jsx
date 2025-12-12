@@ -3,7 +3,7 @@ import DashboardMain from './components/pages/dashboard-main'
 import {BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom'
 import LandingPage from './components/landing-page/landingPage'
 import {Toaster} from 'react-hot-toast'
-import DashboardLayout from './components/other/DashboardLayout'
+import {ToastContainer} from "react-toastify"
 import RegisterPatience from './components/pages/register-patient'
 import CreateReport from './components/pages/create-report'  
 const ProtectedRoute = () => {
@@ -27,6 +27,7 @@ const App = () => {
           </Route>
         </Routes>
       </BrowserRouter>
+      <ToastContainer/>
       <Toaster position="top-right" reverseOrder={false} containerStyle={{ zIndex: 99999 }} />
     </div>
   )
